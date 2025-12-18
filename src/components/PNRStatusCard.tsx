@@ -1,28 +1,37 @@
-import { Train, MapPin, Calendar, Clock, User, CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import { Train, MapPin, Calendar, Clock, User, CheckCircle, AlertCircle, XCircle, IndianRupee, Route } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface PassengerStatus {
-  name: string;
-  age: number;
-  gender: string;
+interface Passenger {
+  passengerSerialNumber: number;
   bookingStatus: string;
+  bookingBerthNo: number;
+  bookingStatusDetails: string;
   currentStatus: string;
+  currentCoachId: string;
+  currentBerthNo: number;
+  currentStatusDetails: string;
 }
 
 interface PNRData {
-  pnr: string;
+  pnrNumber: string;
   trainNumber: string;
   trainName: string;
-  fromStation: string;
-  fromCode: string;
-  toStation: string;
-  toCode: string;
+  sourceStation: string;
+  destinationStation: string;
+  reservationUpto: string;
+  boardingPoint: string;
   dateOfJourney: string;
-  departureTime: string;
-  arrivalTime: string;
-  classType: string;
+  journeyClass: string;
   chartStatus: string;
-  passengers: PassengerStatus[];
+  numberOfpassenger: number;
+  passengerList: Passenger[];
+  bookingFare: number;
+  ticketFare: number;
+  quota: string;
+  bookingDate: string;
+  arrivalDate: string;
+  distance: number;
+  informationMessage?: string[];
 }
 
 interface PNRStatusCardProps {
@@ -31,29 +40,59 @@ interface PNRStatusCardProps {
 }
 
 const getStatusColor = (status: string) => {
-  if (status.includes("CNF") || status.includes("Confirmed")) {
+  if (status === "CNF") {
     return "text-success";
-  } else if (status.includes("WL") || status.includes("Waiting")) {
+  } else if (status === "WL") {
     return "text-amber-500";
-  } else if (status.includes("RAC")) {
+  } else if (status === "RAC") {
     return "text-primary";
-  } else if (status.includes("CAN")) {
+  } else if (status === "CAN") {
     return "text-destructive";
   }
   return "text-foreground";
 };
 
 const getStatusIcon = (status: string) => {
-  if (status.includes("CNF") || status.includes("Confirmed")) {
+  if (status === "CNF") {
     return <CheckCircle className="w-5 h-5 text-success" />;
-  } else if (status.includes("WL") || status.includes("RAC")) {
+  } else if (status === "WL" || status === "RAC") {
     return <AlertCircle className="w-5 h-5 text-amber-500" />;
+  } else if (status === "CAN") {
+    return <XCircle className="w-5 h-5 text-destructive" />;
   }
-  return <XCircle className="w-5 h-5 text-destructive" />;
+  return <AlertCircle className="w-5 h-5 text-muted-foreground" />;
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case "CNF": return "Confirmed";
+    case "WL": return "Waiting List";
+    case "RAC": return "RAC";
+    case "CAN": return "Cancelled";
+    default: return status;
+  }
 };
 
 const PNRStatusCard = ({ pnrData, onReset }: PNRStatusCardProps) => {
   if (!pnrData) return null;
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatTime = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
 
   return (
     <section id="demo" className="py-24">
@@ -67,20 +106,20 @@ const PNRStatusCard = ({ pnrData, onReset }: PNRStatusCardProps) => {
                   <Train className="w-8 h-8" />
                   <div>
                     <h3 className="text-xl font-bold">{pnrData.trainNumber} - {pnrData.trainName}</h3>
-                    <p className="text-sm opacity-90">PNR: {pnrData.pnr}</p>
+                    <p className="text-sm opacity-90">PNR: {pnrData.pnrNumber}</p>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${pnrData.chartStatus === "Prepared" ? "bg-primary-foreground/20" : "bg-primary-foreground/10"}`}>
-                  Chart {pnrData.chartStatus}
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${pnrData.chartStatus === "Chart Prepared" ? "bg-primary-foreground/20" : "bg-primary-foreground/10"}`}>
+                  {pnrData.chartStatus}
                 </span>
               </div>
 
               {/* Journey Details */}
               <div className="flex items-center justify-between mt-6">
                 <div className="text-center">
-                  <p className="text-2xl font-bold">{pnrData.fromCode}</p>
-                  <p className="text-sm opacity-90">{pnrData.fromStation}</p>
-                  <p className="text-lg font-semibold mt-1">{pnrData.departureTime}</p>
+                  <p className="text-2xl font-bold">{pnrData.boardingPoint}</p>
+                  <p className="text-sm opacity-90">Boarding</p>
+                  <p className="text-lg font-semibold mt-1">{formatTime(pnrData.dateOfJourney)}</p>
                 </div>
                 <div className="flex-1 px-8">
                   <div className="relative">
@@ -91,41 +130,52 @@ const PNRStatusCard = ({ pnrData, onReset }: PNRStatusCardProps) => {
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold">{pnrData.toCode}</p>
-                  <p className="text-sm opacity-90">{pnrData.toStation}</p>
-                  <p className="text-lg font-semibold mt-1">{pnrData.arrivalTime}</p>
+                  <p className="text-2xl font-bold">{pnrData.destinationStation}</p>
+                  <p className="text-sm opacity-90">Destination</p>
+                  <p className="text-lg font-semibold mt-1">{formatTime(pnrData.arrivalDate)}</p>
                 </div>
               </div>
             </div>
+
+            {/* Info Message */}
+            {pnrData.informationMessage && pnrData.informationMessage.length > 0 && (
+              <div className="px-6 py-3 bg-amber-500/10 border-b border-amber-500/20">
+                {pnrData.informationMessage.map((msg, idx) => (
+                  <p key={idx} className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                    ⚠️ {msg}
+                  </p>
+                ))}
+              </div>
+            )}
 
             {/* Details Grid */}
             <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4 border-b border-border">
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Date</p>
-                  <p className="font-medium">{pnrData.dateOfJourney}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Duration</p>
-                  <p className="font-medium">8h 30m</p>
+                  <p className="text-xs text-muted-foreground">Journey Date</p>
+                  <p className="font-medium">{formatDate(pnrData.dateOfJourney)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Class</p>
-                  <p className="font-medium">{pnrData.classType}</p>
+                  <p className="text-xs text-muted-foreground">Class / Quota</p>
+                  <p className="font-medium">{pnrData.journeyClass} / {pnrData.quota}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-muted-foreground" />
+                <Route className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Passengers</p>
-                  <p className="font-medium">{pnrData.passengers.length}</p>
+                  <p className="text-xs text-muted-foreground">Distance</p>
+                  <p className="font-medium">{pnrData.distance} km</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <IndianRupee className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Fare</p>
+                  <p className="font-medium">₹{pnrData.ticketFare}</p>
                 </div>
               </div>
             </div>
@@ -134,22 +184,22 @@ const PNRStatusCard = ({ pnrData, onReset }: PNRStatusCardProps) => {
             <div className="p-6">
               <h4 className="font-semibold mb-4 flex items-center gap-2">
                 <User className="w-5 h-5 text-primary" />
-                Passenger Details
+                Passenger Details ({pnrData.numberOfpassenger})
               </h4>
               <div className="space-y-4">
-                {pnrData.passengers.map((passenger, index) => (
+                {pnrData.passengerList.map((passenger) => (
                   <div
-                    key={index}
+                    key={passenger.passengerSerialNumber}
                     className="flex items-center justify-between p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-amber-500/20 flex items-center justify-center text-primary font-bold">
-                        {index + 1}
+                        {passenger.passengerSerialNumber}
                       </div>
                       <div>
-                        <p className="font-medium">{passenger.name}</p>
+                        <p className="font-medium">Passenger {passenger.passengerSerialNumber}</p>
                         <p className="text-sm text-muted-foreground">
-                          {passenger.age} yrs, {passenger.gender}
+                          Booked: {passenger.bookingStatusDetails}
                         </p>
                       </div>
                     </div>
@@ -157,10 +207,10 @@ const PNRStatusCard = ({ pnrData, onReset }: PNRStatusCardProps) => {
                       {getStatusIcon(passenger.currentStatus)}
                       <div>
                         <p className={`font-semibold ${getStatusColor(passenger.currentStatus)}`}>
-                          {passenger.currentStatus}
+                          {passenger.currentStatusDetails || getStatusLabel(passenger.currentStatus)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Booked: {passenger.bookingStatus}
+                          {getStatusLabel(passenger.currentStatus)}
                         </p>
                       </div>
                     </div>
@@ -169,13 +219,19 @@ const PNRStatusCard = ({ pnrData, onReset }: PNRStatusCardProps) => {
               </div>
             </div>
 
+            {/* Booking Info */}
+            <div className="px-6 pb-4">
+              <div className="text-sm text-muted-foreground flex flex-wrap gap-4">
+                <span>Booked on: {formatDate(pnrData.bookingDate)}</span>
+                <span>Arrival: {formatDate(pnrData.arrivalDate)}</span>
+                <span>Total Fare: ₹{pnrData.bookingFare}</span>
+              </div>
+            </div>
+
             {/* Actions */}
             <div className="p-6 bg-card/50 flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg" onClick={onReset}>
                 Check Another PNR
-              </Button>
-              <Button variant="glass" size="lg">
-                Set Alert
               </Button>
             </div>
           </div>

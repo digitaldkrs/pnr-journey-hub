@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
@@ -6,59 +8,84 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import PNRStatusCard from "@/components/PNRStatusCard";
 import Footer from "@/components/Footer";
 
-// Demo PNR data
-const demoPNRData = {
-  pnr: "8547619283",
-  trainNumber: "12301",
-  trainName: "Howrah Rajdhani Express",
-  fromStation: "New Delhi",
-  fromCode: "NDLS",
-  toStation: "Howrah Junction",
-  toCode: "HWH",
-  dateOfJourney: "25 Dec 2024",
-  departureTime: "16:55",
-  arrivalTime: "09:55",
-  classType: "3A - Third AC",
-  chartStatus: "Prepared",
-  passengers: [
-    {
-      name: "Rahul Sharma",
-      age: 32,
-      gender: "Male",
-      bookingStatus: "WL/15",
-      currentStatus: "CNF/B2/45",
-    },
-    {
-      name: "Priya Sharma",
-      age: 28,
-      gender: "Female",
-      bookingStatus: "WL/16",
-      currentStatus: "CNF/B2/46",
-    },
-    {
-      name: "Arjun Sharma",
-      age: 5,
-      gender: "Male",
-      bookingStatus: "WL/17",
-      currentStatus: "CNF/B2/47",
-    },
-  ],
-};
+interface PNRApiResponse {
+  success: boolean;
+  data?: {
+    pnrNumber: string;
+    trainNumber: string;
+    trainName: string;
+    sourceStation: string;
+    destinationStation: string;
+    reservationUpto: string;
+    boardingPoint: string;
+    dateOfJourney: string;
+    journeyClass: string;
+    chartStatus: string;
+    numberOfpassenger: number;
+    passengerList: Array<{
+      passengerSerialNumber: number;
+      bookingStatus: string;
+      bookingBerthNo: number;
+      bookingStatusDetails: string;
+      currentStatus: string;
+      currentCoachId: string;
+      currentBerthNo: number;
+      currentStatusDetails: string;
+    }>;
+    bookingFare: number;
+    ticketFare: number;
+    quota: string;
+    bookingDate: string;
+    arrivalDate: string;
+    distance: number;
+    informationMessage?: string[];
+  };
+  error?: string;
+}
 
 const Index = () => {
   const [pnrValue, setPnrValue] = useState("");
-  const [pnrData, setPnrData] = useState<typeof demoPNRData | null>(null);
+  const [pnrData, setPnrData] = useState<PNRApiResponse['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleCheckPNR = (pnr: string) => {
+  const handleCheckPNR = async (pnr: string) => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setPnrData({ ...demoPNRData, pnr });
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('check-pnr', {
+        body: { pnr }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const response = data as PNRApiResponse;
+
+      if (response.success && response.data) {
+        setPnrData(response.data);
+        // Scroll to results
+        setTimeout(() => {
+          document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to fetch PNR status. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('PNR check error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to fetch PNR status. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-      // Scroll to results
-      document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" });
-    }, 1500);
+    }
   };
 
   const handleReset = () => {
