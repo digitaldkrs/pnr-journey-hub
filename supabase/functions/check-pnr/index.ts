@@ -48,7 +48,20 @@ serve(async (req) => {
     const data = await response.json();
     console.log('API Response:', JSON.stringify(data));
 
-    return new Response(JSON.stringify(data), {
+    // Handle error response from API (invalid/flushed PNR)
+    if (data.success === false) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: data.message || 'Invalid PNR or PNR not yet generated',
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      data: data.data,
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
