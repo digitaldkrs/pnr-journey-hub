@@ -77,13 +77,7 @@ const HeroSection = ({ onCheckPNR, pnrValue, setPnrValue }: HeroSectionProps) =>
           </form>
 
           <p className="text-sm text-muted-foreground mt-4 animate-slide-up-delay-2">
-            Try your PNR: <button
-              type="button"
-              onClick={() => setPnrValue("6461250996")}
-              className="text-primary hover:underline font-medium"
-            >
-              6461250996
-            </button>
+            Enter your 10-digit PNR number to check your train booking status
           </p>
 
           {/* Stats */}
