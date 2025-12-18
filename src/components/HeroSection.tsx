@@ -77,12 +77,12 @@ const HeroSection = ({ onCheckPNR, pnrValue, setPnrValue }: HeroSectionProps) =>
           </form>
 
           <p className="text-sm text-muted-foreground mt-4 animate-slide-up-delay-2">
-            Try demo PNR: <button
+            Try your PNR: <button
               type="button"
-              onClick={() => setPnrValue("8547619283")}
+              onClick={() => setPnrValue("6461250996")}
               className="text-primary hover:underline font-medium"
             >
-              8547619283
+              6461250996
             </button>
           </p>
 
