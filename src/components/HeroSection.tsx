@@ -55,26 +55,18 @@ const HeroSection = ({ onCheckPNR, pnrValue, setPnrValue }: HeroSectionProps) =>
   Get real-time PNR status updates, live train tracking, and accurate seat confirmation predictions in seconds.
 </p>
 
-<p className="text-sm md:text-base text-muted-foreground mb-10 max-w-2xl mx-auto">
-  For more online tools, visit{" "}
-  <a
-    href="https://thedapachecker.com/"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="underline font-semibold text-primary"
-  >
+
+<div style={{ color: "red", fontSize: "18px", margin: "20px auto", position: "relative", zIndex: 9999 }}>
+  TEST LINK SECTION
+  <br />
+  <a href="https://thedapachecker.com/" target="_blank" rel="noopener noreferrer">
     The DA PA Checker
   </a>
-  {" "}and for free astrology calculators, visit{" "}
-  <a
-    href="https://vedictemple.in/"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="underline font-semibold text-primary"
-  >
+  <br />
+  <a href="https://vedictemple.in/" target="_blank" rel="noopener noreferrer">
     Vedic Temple
-  </a>.
-</p>
+  </a>
+</div>
 
           <form onSubmit={handleSubmit} className="animate-slide-up-delay-2">
             <div className="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
